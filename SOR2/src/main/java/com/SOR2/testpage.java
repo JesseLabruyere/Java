@@ -7,19 +7,23 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.IRequestParameters;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 
 public class testpage extends WebPage {
 
 	private WebMarkupContainer textParent;
 	private Label textLabel;
+	private Label changePage;
 	private AbstractDefaultAjaxBehavior onClickMethod;	
+	private AbstractDefaultAjaxBehavior onClickMethod2;	
 	private WebMarkupContainer clickItem;
 	private String textVariabele = "dit is een test text";
 
@@ -35,12 +39,10 @@ public class testpage extends WebPage {
 		// We maken een label aan voor het <p> element
 		textLabel = new Label("text", new PropertyModel<String>(this, "textVariabele"));
 		
-		//textLabel = new Label("text", textVariabele);
-		// het element met dezelfde id is wijzigbaar via ajax
+		// het element is vindbaar via ajax
 		textLabel.setOutputMarkupId(true);
 		textParent.setOutputMarkupId(true);
 
-		textParent.setOutputMarkupPlaceholderTag(true);
 		
 		// We voegen het <p> label toe aan de <div> markupcontainer
 		textParent.add(textLabel);
@@ -48,7 +50,7 @@ public class testpage extends WebPage {
 		//We voegen de WebMarkupContainer toe aan de pagina
 		add(textParent);
 		
-		// Een methode die wordt aangeroepen op onclick
+		// Een methode die wordt aangeroepen op onclick van clickItem
 		onClickMethod = new AbstractDefaultAjaxBehavior() {
 			@Override
 			protected void respond(AjaxRequestTarget target) {
@@ -63,7 +65,13 @@ public class testpage extends WebPage {
 				textLabel.setDefaultModelObject(textVariabele);
 				
 				// voeg opnieuw toe
-				target.add(textLabel);				
+				//target.add(textLabel);				
+				// verander de achtergrondkleur van de parent
+				textParent.add(new AttributeModifier("style", "background-color:green;"));
+				// voeg het label opnieuw toe aan de parent
+				textParent.add(textLabel);
+				//replace de parent
+				target.add(textParent);
 			}	
 			
 		};
@@ -81,9 +89,36 @@ public class testpage extends WebPage {
 			
 		};
 		clickItem.setOutputMarkupId(true);
-		clickItem.setOutputMarkupPlaceholderTag(true);
-		
 		add(clickItem);
+		
+		// Een methode die wordt aangeroepen op onclick van changePage
+		onClickMethod2 = new AbstractDefaultAjaxBehavior() {
+			@Override
+			protected void respond(AjaxRequestTarget target) {
+				// We veranderen de tekst van de label (omdat het kan)
+				changePage.setDefaultModelObject("changed");
+				target.add(changePage);
+				
+				// voeg een stukje javascript toe aan het begin van de bestaande javascript
+				target.prependJavaScript("window.location.href='"+ urlFor(HomePage.class, null) +"';");
+				
+
+			}	
+			
+		};
+		add(onClickMethod2);
+		
+		// Een label met onClickMethod2
+		changePage = new Label("changePage", "Klik hier om naar de HomePage te gaan"){
+			@Override
+			protected void onComponentTag(ComponentTag tag) {
+				changePage.setOutputMarkupId(true);
+				tag.put("onMouseDown", "Wicket.Ajax.get({'u':'"+ onClickMethod2.getCallbackUrl() +"'});");	
+			}
+		};
+		changePage.setOutputMarkupId(true);
+		add(changePage);
+		
 	}
 
 }

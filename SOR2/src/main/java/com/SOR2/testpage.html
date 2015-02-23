@@ -6,10 +6,14 @@
 </head>
 <body>
 
-<div wicket:id="textParent">
+<!--  de normale id's zijn nodig omdat anders het updaten via ajax niet goed werkt, vreemd gedrag -->
+<!--  het enige element waar dit wel goed werkt is wicket:id="text" -->
+<div wicket:id="textParent" id="textParent">
 	<p wicket:id="text"> </p>
 </div>
-<div wicket:id="clickId"> </div>
+<div wicket:id="clickId" id="clickId"> </div>
+<p wicket:id="changePage" id="changePage"></p>
+
 
 </body>
 </html>
